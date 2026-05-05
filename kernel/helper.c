@@ -1,4 +1,5 @@
 #include "helper.h"
+#include <stdint.h>
 
 volatile char *VGA = (volatile char*) 0xB8000;
 int row = 0;
@@ -20,6 +21,19 @@ void print(char *string){
             col = 0;
         }
     }
+}
+
+void print_hex(uint8_t value) {
+    char hex[] = "0123456789ABCDEF";
+
+    char str[5];
+    str[0] = '0';
+    str[1] = 'x';
+    str[2] = hex[(value >> 4) & 0xF];
+    str[3] = hex[value & 0xF];
+    str[4] = 0;
+
+    print(str);
 }
 
 void print_nl(void){

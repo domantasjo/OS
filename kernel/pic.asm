@@ -1,7 +1,7 @@
 ; Remap the 8259A PIC so that hardware IRQs don't overlap CPU exception vectors.
 ; By default the BIOS maps IRQ 0-7 to vectors 8-15, which clash with CPU exceptions.
 ; We move them to vectors 32-47 (0x20-0x2F), which are free for hardware use.
-global MapPic
+global map_pic
 
 ; ICW1 (Initialization Control Word 1) -- sent to the control port to start init.
 ; 0x11 = 00010001b:
@@ -20,7 +20,7 @@ global MapPic
 %define IRQ_8 0x28      ; Slave  PIC IRQs 8-15 -> vectors 0x28-0x2F (40-47)
 
 
-MapPic:
+map_pic:
     ; Disable interrupts for the duration of the reprogramming sequence.
     ; If a hardware IRQ fires while the PIC is halfway through initialization
     ; it will end up in an undefined state and likely triple-fault the CPU.
