@@ -1,6 +1,6 @@
 #include "idt.h"
 #include "gdt.h"
-#include "kernel.h"
+#include "helper.h"
 #include <stdint.h>
 
 static idt_entry_t idt[IDT_MAX_DESCRIPTORS];
@@ -9,16 +9,16 @@ extern void* isr_stub_table[];
 
 void exception_handler(uint32_t vector, uint32_t err){
     switch(vector){
-        case 0: // Divide by zero
+        case 0:
         print("Division by zero");
         break;
-        case 6: //invalid opcode
+        case 6: 
         print("Invalid opcode");
         break;
-        case 13: //General protection fault(privelege/segmentation violation)
+        case 13:
         print("General protection fault");
         break;
-        case 14: //page fault
+        case 14:
         print("Page fault");
         break;
     }
@@ -45,7 +45,6 @@ void idt_init(void){
     }
 
     __asm__ volatile ("lidt %0" : : "m"(idtr));
-    __asm__ volatile ("sti");
 }
 
 

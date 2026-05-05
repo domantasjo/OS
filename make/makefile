@@ -7,7 +7,7 @@ CC = i686-elf-gcc
 LD = i686-elf-ld
 AS = nasm
 
-CFLAGS  = -ffreestanding -m32 -nostdlib -nostartfiles -nodefaultlibs -I$(ROOT)/kernel
+CFLAGS = -ffreestanding -m32 -nostdlib -nostartfiles -nodefaultlibs -I$(ROOT)/kernel -MMD -MP
 LDFLAGS = -T $(ROOT)/make/linker.ld --oformat binary
 
 all: $(BUILD)/os-image.bin
@@ -24,14 +24,20 @@ $(BUILD)/kernel.o: $(ROOT)/kernel/kernel.c | $(BUILD)
 $(BUILD)/idt.o: $(ROOT)/kernel/idt.c $(ROOT)/kernel/idt.h | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BUILD)/helper.o: $(ROOT)/kernel/helper.c $(ROOT)/kernel/helper.h | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 $(BUILD)/entry.o: $(ROOT)/kernel/entry.asm | $(BUILD)
 	$(AS) -f elf $< -o $@
 
-$(BUILD)/idt_asm.o: $(ROOT)/kernel/idt.asm | $(BUILD)
+$(BUILD)/idt_asm.o: $(ROOT)/kernel/idt.asm $(ROOT)/kernel/pic.h | $(BUILD)
 	$(AS) -f elf $< -o $@
 
-$(BUILD)/kernel.bin: $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/idt_asm.o $(ROOT)/make/linker.ld | $(BUILD)
-	$(LD) $(LDFLAGS) -o $@ $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/idt_asm.o
+$(BUILD)/pic_asm.o: $(ROOT)/kernel/pic.asm | $(BUILD)
+	$(AS) -f elf $< -o $@
+
+$(BUILD)/kernel.bin: $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o $(ROOT)/make/linker.ld | $(BUILD)
+	$(LD) $(LDFLAGS) -o $@ $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o
 
 $(BUILD)/os-image.bin: $(BUILD)/boot.bin $(BUILD)/kernel.bin | $(BUILD)
 	cat $(BUILD)/boot.bin $(BUILD)/kernel.bin > $@
@@ -45,3 +51,5 @@ clean:
 	rm -rf $(BUILD)
 
 .PHONY: all run clean
+
+-include $(BUILD)/*.d

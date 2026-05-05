@@ -1,4 +1,4 @@
-# os_from_scratch
+## OS
 
 A small Unix-like operating system being built from scratch, x86 (32-bit), xv6-style. See `roadmap.md` for the full plan and progress.
 
