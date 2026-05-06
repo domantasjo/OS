@@ -156,7 +156,7 @@ Goal: Kernel catches CPU exceptions instead of triple-faulting.
 
 ---
 
-## [ ] Step 8: Remap the PIC & Enable Hardware Interrupts
+## [X] Step 8: Remap the PIC & Enable Hardware Interrupts
 
 The default PIC mapping overlaps CPU exceptions (IRQ 0-7 map to interrupts 0-7).
 
