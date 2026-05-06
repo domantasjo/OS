@@ -6,6 +6,8 @@ void kernel_main() {
     row = 10;
     idt_init();
     map_pic();
+
+    __asm__ volatile("int $0x20");
     uint8_t before = inb(PIC_1_DATA);
     print_hex(before);
     print_nl();
