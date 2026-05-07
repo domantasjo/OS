@@ -7,7 +7,7 @@ CC = i686-elf-gcc
 LD = i686-elf-ld
 AS = nasm
 
-CFLAGS = -ffreestanding -m32 -nostdlib -nostartfiles -nodefaultlibs -I$(ROOT)/kernel -MMD -MP
+CFLAGS = -ffreestanding -m32 -nostdlib -nostartfiles -nodefaultlibs -I$(ROOT)/kernel -I$(ROOT)/kernel/arch/x86 -I$(ROOT)/drivers -I$(ROOT)/lib -MMD -MP
 LDFLAGS = -T $(ROOT)/make/linker.ld --oformat binary
 
 all: $(BUILD)/os-image.bin
@@ -21,29 +21,32 @@ $(BUILD)/boot.bin: $(ROOT)/bootloader/bootloader.asm $(ROOT)/bootloader/print.as
 $(BUILD)/kernel.o: $(ROOT)/kernel/kernel.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/idt.o: $(ROOT)/kernel/idt.c $(ROOT)/kernel/idt.h | $(BUILD)
+$(BUILD)/idt.o: $(ROOT)/kernel/arch/x86/idt.c $(ROOT)/kernel/arch/x86/idt.h | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/helper.o: $(ROOT)/kernel/helper.c $(ROOT)/kernel/helper.h | $(BUILD)
+$(BUILD)/helper.o: $(ROOT)/lib/helper.c $(ROOT)/lib/helper.h | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/keyboard.o: $(ROOT)/drivers/keyboard.c $(ROOT)/drivers/keyboard.h | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)/entry.o: $(ROOT)/kernel/entry.asm | $(BUILD)
 	$(AS) -f elf $< -o $@
 
-$(BUILD)/idt_asm.o: $(ROOT)/kernel/idt.asm $(ROOT)/kernel/pic.h | $(BUILD)
+$(BUILD)/idt_asm.o: $(ROOT)/kernel/arch/x86/idt.asm $(ROOT)/kernel/arch/x86/pic.h | $(BUILD)
 	$(AS) -f elf $< -o $@
 
-$(BUILD)/pic_asm.o: $(ROOT)/kernel/pic.asm | $(BUILD)
+$(BUILD)/pic_asm.o: $(ROOT)/kernel/arch/x86/pic.asm | $(BUILD)
 	$(AS) -f elf $< -o $@
 
-$(BUILD)/pic.o: $(ROOT)/kernel/pic.c $(ROOT)/kernel/pic.h | $(BUILD)
+$(BUILD)/pic.o: $(ROOT)/kernel/arch/x86/pic.c $(ROOT)/kernel/arch/x86/pic.h | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/pit.o: $(ROOT)/kernel/pit.c $(ROOT)/kernel/pit.h | $(BUILD)
+$(BUILD)/pit.o: $(ROOT)/kernel/arch/x86/pit.c $(ROOT)/kernel/arch/x86/pit.h | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/kernel.bin: $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o $(BUILD)/pic.o $(BUILD)/pit.o $(ROOT)/make/linker.ld | $(BUILD)
-	$(LD) $(LDFLAGS) -o $@ $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o $(BUILD)/pic.o $(BUILD)/pit.o
+$(BUILD)/kernel.bin: $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/keyboard.o $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o $(BUILD)/pic.o $(BUILD)/pit.o $(ROOT)/make/linker.ld | $(BUILD)
+	$(LD) $(LDFLAGS) -o $@ $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/keyboard.o  $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o $(BUILD)/pic.o $(BUILD)/pit.o
 
 $(BUILD)/os-image.bin: $(BUILD)/boot.bin $(BUILD)/kernel.bin | $(BUILD)
 	cat $(BUILD)/boot.bin $(BUILD)/kernel.bin > $@

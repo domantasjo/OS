@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "pic.h"
 #include "pit.h"
+#include "keyboard.h"
 
 static idt_entry_t idt[IDT_MAX_DESCRIPTORS];
 static idtr_t idtr;
@@ -30,9 +31,18 @@ void interrupt_handler(uint32_t vector, uint32_t err){
     }
     else if(vector < 40)
     {
-        if(vector == 32)
+        switch(vector)
         {
+            case 32:
             ticks++;
+            break;
+            case 33:
+            {
+                uint8_t scancode = inb(PS2_DATA);
+                buf[head] = scancode;
+                head = (head+1) % 256;
+                break;
+            }
         }
         outb(PIC_1_CTRL,0x20);
     }
@@ -61,7 +71,6 @@ void idt_init(void){
     for(uint8_t vector = 0; vector < 48; vector++){
         idt_set_descriptor(vector, isr_stub_table[vector], IDT_FLAG_INTERRUPT_GATE);
     }
-
     __asm__ volatile ("lidt %0" : : "m"(idtr));
 }
 

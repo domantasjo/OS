@@ -14,8 +14,13 @@ isr_stub_%+%1:
 %endmacro
 
 isr_common:
+    pusha                      ; save eax,ecx,edx,ebx,esp,ebp,esi,edi (32 bytes)
+    push dword [esp + 36]      ; err    (was at [esp+4]; now at [esp+36] after pusha)
+    push dword [esp + 36]      ; vector (was at [esp]; now at [esp+32]; +4 from first push)
     call interrupt_handler
-    add esp, 8
+    add esp, 8                 ; drop our 2 pushed args
+    popa                       ; restore regs
+    add esp, 8                 ; drop original vector + err
     iret
 
 isr_no_err_stub 0

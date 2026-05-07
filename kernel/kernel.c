@@ -2,6 +2,7 @@
 #include "helper.h"
 #include "pic.h"
 #include "pit.h"
+#include "keyboard.h"
 
 void kernel_main() {
     row = 10;
@@ -10,13 +11,10 @@ void kernel_main() {
     char buf[6];
     while(true)
     {
-        uint32_t seconds = ticks / 1000;
-        if(seconds_old < seconds)
+        uint8_t key = keyboard_poll();
+        if (key >= 0x20 && key <= 0x7E)
         {
-            uint16_to_string(seconds,buf);
-            print(buf);
-            print_nl();
-            seconds_old = seconds;
+            printchar(key);
         }
     }
 }
