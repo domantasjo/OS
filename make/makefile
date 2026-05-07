@@ -39,8 +39,11 @@ $(BUILD)/pic_asm.o: $(ROOT)/kernel/pic.asm | $(BUILD)
 $(BUILD)/pic.o: $(ROOT)/kernel/pic.c $(ROOT)/kernel/pic.h | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/kernel.bin: $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o $(BUILD)/pic.o $(ROOT)/make/linker.ld | $(BUILD)
-	$(LD) $(LDFLAGS) -o $@ $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o $(BUILD)/pic.o
+$(BUILD)/pit.o: $(ROOT)/kernel/pit.c $(ROOT)/kernel/pit.h | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/kernel.bin: $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o $(BUILD)/pic.o $(BUILD)/pit.o $(ROOT)/make/linker.ld | $(BUILD)
+	$(LD) $(LDFLAGS) -o $@ $(BUILD)/entry.o $(BUILD)/kernel.o $(BUILD)/idt.o $(BUILD)/helper.o $(BUILD)/idt_asm.o $(BUILD)/pic_asm.o $(BUILD)/pic.o $(BUILD)/pit.o
 
 $(BUILD)/os-image.bin: $(BUILD)/boot.bin $(BUILD)/kernel.bin | $(BUILD)
 	cat $(BUILD)/boot.bin $(BUILD)/kernel.bin > $@

@@ -1,5 +1,8 @@
 #include "helper.h"
 #include <stdint.h>
+#include "pit.h"
+#include "idt.h"
+#include "pic.h"
 
 volatile char *VGA = (volatile char*) 0xB8000;
 int row = 0;
@@ -25,7 +28,6 @@ void print(char *string){
 
 void print_hex(uint8_t value) {
     char hex[] = "0123456789ABCDEF";
-
     char str[5];
     str[0] = '0';
     str[1] = 'x';
@@ -39,4 +41,38 @@ void print_hex(uint8_t value) {
 void print_nl(void){
     row++;
     col = 0;
+}
+
+void uint16_to_string(uint16_t value, char *str)
+{
+    char temp[6];
+    int i = 0;
+
+    if (value == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return;
+    }
+
+    while (value > 0) {
+        temp[i++] = (value % 10) + '0';
+        value /= 10;
+    }
+
+    // reverse into output string
+    int j = 0;
+    while (i > 0) {
+        str[j++] = temp[--i];
+    }
+
+    str[j] = '\0';
+}
+
+
+void init()
+{
+    idt_init();
+    map_pic();
+    init_pit();
+    irq_enable(0);
 }

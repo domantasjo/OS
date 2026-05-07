@@ -1,27 +1,23 @@
 #include "idt.h"
 #include "helper.h"
 #include "pic.h"
+#include "pit.h"
 
 void kernel_main() {
     row = 10;
-    idt_init();
-    map_pic();
-
-    __asm__ volatile("int $0x20");
-    uint8_t before = inb(PIC_1_DATA);
-    print_hex(before);
-    print_nl();
-
-    irq_enable(1);
-    uint8_t after1 = inb(PIC_1_DATA);
-    print_hex(after1);
-    print_nl();
-
-    irq_disable(1);
-    uint8_t after2 = inb(PIC_1_DATA);
-    print_hex(after2);
-    print_nl();
-    while (1) { 
+    init();
+    uint16_t seconds_old = 0;
+    char buf[6];
+    while(true)
+    {
+        uint32_t seconds = ticks / 1000;
+        if(seconds_old < seconds)
+        {
+            uint16_to_string(seconds,buf);
+            print(buf);
+            print_nl();
+            seconds_old = seconds;
+        }
     }
 }
 

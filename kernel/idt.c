@@ -3,6 +3,7 @@
 #include "helper.h"
 #include <stdint.h>
 #include "pic.h"
+#include "pit.h"
 
 static idt_entry_t idt[IDT_MAX_DESCRIPTORS];
 static idtr_t idtr;
@@ -31,8 +32,7 @@ void interrupt_handler(uint32_t vector, uint32_t err){
     {
         if(vector == 32)
         {
-            print("tick");
-            print_nl();
+            ticks++;
         }
         outb(PIC_1_CTRL,0x20);
     }

@@ -170,7 +170,7 @@ Goal: Hardware interrupts arrive without conflicting with exceptions.
 
 ---
 
-## [ ] Step 9: Timer (PIT)
+## [X] Step 9: Timer (PIT)
 
 Configure the Programmable Interval Timer (PIT) to fire periodic interrupts.
 
