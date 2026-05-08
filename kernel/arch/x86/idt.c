@@ -1,77 +1,73 @@
 #include "idt.h"
+#include "../../../drivers/keyboard.h"
+#include "../../../lib/helper.h"
+#include "../../../lib/vga.h"
 #include "gdt.h"
-#include "helper.h"
-#include <stdint.h>
+#include "io.h"
 #include "pic.h"
 #include "pit.h"
-#include "keyboard.h"
+#include <stdint.h>
 
 static idt_entry_t idt[IDT_MAX_DESCRIPTORS];
 static idtr_t idtr;
-extern void* isr_stub_table[];
+extern void *isr_stub_table[];
 
-void interrupt_handler(uint32_t vector, uint32_t err){
-    if(vector < 32)
-    {
-        switch(vector){
-            case 0:
-            print("Division by zero");
-            break;
-            case 6: 
-            print("Invalid opcode");
-            break;
-            case 13:
-            print("General protection fault");
-            break;
-            case 14:
-            print("Page fault");
-            break;
-         }
-        __asm__ volatile("cli;hlt");
+void interrupt_handler(uint32_t vector, uint32_t err) {
+  if (vector < 32) {
+    switch (vector) {
+    case 0:
+      print("Division by zero");
+      break;
+    case 6:
+      print("Invalid opcode");
+      break;
+    case 13:
+      print("General protection fault");
+      break;
+    case 14:
+      print("Page fault");
+      break;
     }
-    else if(vector < 40)
-    {
-        switch(vector)
-        {
-            case 32:
-            ticks++;
-            break;
-            case 33:
-            {
-                uint8_t scancode = inb(PS2_DATA);
-                buf[head] = scancode;
-                head = (head+1) % 256;
-                break;
-            }
-        }
-        outb(PIC_1_CTRL,0x20);
+    __asm__ volatile("cli;hlt");
+  } else if (vector < 40) {
+    switch (vector) {
+    case 32:
+      ticks++;
+      break;
+    case 33:
+      keyboard_irq();
+      break;
+    case 39:
+      if (is_spurious_irq(PIC_1_CTRL))
+        return;
     }
-    else
-    {
-        outb(PIC_2_CTRL,0x20);
-        outb(PIC_1_CTRL,0x20);
+    outb(PIC_1_CTRL, 0x20);
+  } else {
+    if (vector == 47 && is_spurious_irq(PIC_2_CTRL)) {
+      outb(PIC_1_CTRL, 0x20);
+      return;
     }
-
+    outb(PIC_2_CTRL, 0x20);
+    outb(PIC_1_CTRL, 0x20);
+  }
 }
 
-void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags){
-    idt_entry_t* descriptor = &idt[vector];
+void idt_set_descriptor(uint8_t vector, void *isr, uint8_t flags) {
+  idt_entry_t *descriptor = &idt[vector];
 
-    descriptor->isr_low = (uint32_t)isr & 0xFFFF;
-    descriptor->kernel_cs = KERNEL_CODE_SEGMENT;
-    descriptor->attributes = flags;
-    descriptor->isr_high = (uint32_t) isr >> 16;
-    descriptor->reserved = 0;
+  descriptor->isr_low = (uint32_t)isr & 0xFFFF;
+  descriptor->kernel_cs = KERNEL_CODE_SEGMENT;
+  descriptor->attributes = flags;
+  descriptor->isr_high = (uint32_t)isr >> 16;
+  descriptor->reserved = 0;
 }
 
-void idt_init(void){
-    idtr.base = (uintptr_t)&idt[0];
-    idtr.limit = (uint16_t)sizeof(idt_entry_t) * IDT_MAX_DESCRIPTORS - 1;
+void idt_init(void) {
+  idtr.base = (uintptr_t)&idt[0];
+  idtr.limit = (uint16_t)sizeof(idt_entry_t) * IDT_MAX_DESCRIPTORS - 1;
 
-    for(uint8_t vector = 0; vector < 48; vector++){
-        idt_set_descriptor(vector, isr_stub_table[vector], IDT_FLAG_INTERRUPT_GATE);
-    }
-    __asm__ volatile ("lidt %0" : : "m"(idtr));
+  for (uint8_t vector = 0; vector < 48; vector++) {
+    idt_set_descriptor(vector, isr_stub_table[vector], IDT_FLAG_INTERRUPT_GATE);
+  }
+  __asm__ volatile("lidt %0" : : "m"(idtr));
 }
-
-
