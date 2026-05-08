@@ -185,7 +185,7 @@ Goal: Periodic timer interrupt fires and increments a tick counter.
 
 # PHASE 5 -- Keyboard & Console I/O
 
-## [ ] Step 10: Keyboard Driver
+## [X] Step 10: Keyboard Driver
 
 Read scancodes from I/O port `0x60` in the IRQ 1 handler.
 

@@ -7,6 +7,10 @@
 void printchar(char character);
 void print(const char *string);
 uint8_t get_cols(void);
+void print_nl(void);
 
 void decrement_cols(void);
+uint8_t get_rows(void);
+void decrement_rows(void);
+uint8_t get_line_length(void);
 volatile char *get_cell(void);

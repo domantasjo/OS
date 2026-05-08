@@ -182,14 +182,21 @@ const char keyboard_poll(void) {
     return 0;
   }
   // non-modifier release: ignore
-  if (released)
+  if (released) {
     return 0;
+  }
   if (key == KEY_BACKSPACE) {
-    if (get_cols() > 0)
+    if (get_cols() > 0) {
       decrement_cols();
-    volatile char *cell = get_cell();
-    cell[0] = ' ';
+      volatile char *cell = get_cell();
+      cell[0] = ' ';
+    } else if (get_cols() == 0) {
+      decrement_rows();
+    }
     return 0;
+  }
+  if (key == KEY_ENTER) {
+    print_nl();
   }
   bool upper = shift_held ^ caps_active; // XOR: caps inverts shift
   char ascii = scancode_to_ascii(key, extended, upper);
