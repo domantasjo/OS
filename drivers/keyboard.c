@@ -186,13 +186,7 @@ const char keyboard_poll(void) {
     return 0;
   }
   if (key == KEY_BACKSPACE) {
-    if (get_cols() > 0) {
-      decrement_cols();
-      volatile char *cell = get_cell();
-      cell[0] = ' ';
-    } else if (get_cols() == 0) {
-      decrement_rows();
-    }
+    delete_char();
     return 0;
   }
   if (key == KEY_ENTER) {

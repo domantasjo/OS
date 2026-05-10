@@ -1,22 +1,32 @@
 #include "vga.h"
 volatile char *vga = (volatile char *)VGA_BUFFER;
-int row = 10;
+int row = 0;
 int col = 0;
-int line_len[VGA_ROWS];
+volatile char console_buf[CSL_ROWS][VGA_COLS];
+int viewport_top = 0;
+int line_length[CSL_ROWS];
 
 volatile char *vga_at(int row, int col) {
   return (volatile char *)VGA_BUFFER + (row * VGA_COLS * 2) + col * 2;
 }
 
 void printchar(char character) {
-  volatile char *cell = vga_at(row, col);
-  cell[0] = character;
-  cell[1] = 0x0A;
+  console_buf[row][col] = character;
+  line_length[row]++;
   col++;
-  line_len[row]++;
   if (col == 80) {
     row++;
     col = 0;
+  }
+}
+
+void render_vga(void) {
+  for (int i = 0; i < VGA_ROWS; i++) {
+    for (int j = 0; j < VGA_COLS; j++) {
+      volatile char *cell = vga_at(i, j);
+      cell[0] = console_buf[i + viewport_top][j];
+      cell[1] = 0x0A;
+    }
   }
 }
 
@@ -27,18 +37,21 @@ void print(const char *string) {
 }
 
 void print_nl(void) {
-  row++;
   col = 0;
+  row++;
 }
 
-uint8_t get_cols(void) { return col; }
+void delete_char(void) {
+  if (col == 0) {
+    console_buf[row][col] = ' ';
+    col = line_length[--row];
+  } else {
+    col--;
+    console_buf[row][col] = ' ';
+    line_length[row]--;
+  }
+}
 
-void decrement_cols(void) { col--; }
+int get_cols(void) { return col; }
 
-uint8_t get_rows(void) { return row; }
-
-void decrement_rows(void) { row--; }
-
-uint8_t get_line_length(void) { return line_len[row]; }
-
-volatile char *get_cell(void) { return vga_at(row, col); }
+void set_cols(int cols) { col = cols; }
