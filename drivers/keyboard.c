@@ -150,56 +150,93 @@ static const char scancode_to_ascii(uint8_t sc, bool extended, bool upper) {
   return upper ? scancode_ascii_shift[sc] : scancode_ascii[sc];
 }
 
+static uint8_t read_scancode(void) {
+  uint8_t sc = kbd_buf[kbd_tail];
+  kbd_tail = (kbd_tail + 1) % 256;
+  return sc;
+}
+
+static enum KEYCODE decode_key(uint8_t scancode, bool *released,
+                               bool *extended) {
+  if (scancode == 0xE0) {
+    *extended = true;
+    return 0;
+  }
+  *released = scancode & 0x80;
+  enum KEYCODE key = scancode & 0x7F;
+  if (*extended)
+    key |= 0xE000;
+  return key;
+}
+
+static void handle_modifier(enum KEYCODE key, bool released) {
+  bool pressed = !released;
+  if (key == KEY_LSHIFT || key == KEY_RSHIFT)
+    shift_held = pressed;
+  else if (key == KEY_LCTRL || key == KEY_RCTRL)
+    ctrl_held = pressed;
+  else if (key == KEY_LALT || key == KEY_RALT)
+    alt_held = pressed;
+  else if (key == KEY_CAPSLOCK && pressed)
+    caps_active = !caps_active;
+}
+
+static void handle_navigation(enum KEYCODE key) {
+  switch (key) {
+  case KEY_BACKSPACE:
+    delete_char();
+    break;
+  case KEY_ENTER:
+    print_nl();
+    break;
+  case KEY_LEFT:
+    cursor_left();
+    break;
+  case KEY_RIGHT:
+    cursor_right();
+    break;
+  case KEY_UP:
+    cursor_up();
+    break;
+  case KEY_DOWN:
+    cursor_down();
+    break;
+  default:
+    break;
+  }
+}
+
 const char keyboard_poll(void) {
   if (kbd_head == kbd_tail)
     return 0;
-  uint8_t scancode = kbd_buf[kbd_tail];
-  kbd_tail = (kbd_tail + 1) % 256;
 
-  if (scancode == 0xE0) {
-    extended = true;
+  uint8_t scancode = read_scancode();
+  bool released = false;
+  enum KEYCODE key = decode_key(scancode, &released, &extended);
+  if (key == 0)
     return 0;
-  }
 
-  bool released = scancode & 0x80;
-  enum KEYCODE key = scancode & 0x7F;
-
-  // modifier handling — must run for both press AND release
-  if (key == KEY_LSHIFT || key == KEY_RSHIFT) {
-    shift_held = !released;
-    return 0;
-  }
-  if (key == KEY_LCTRL || key == KEY_RCTRL) {
-    ctrl_held = !released;
-    return 0;
-  }
-  if (key == KEY_LALT || key == KEY_RALT) {
-    alt_held = !released;
-    return 0;
-  }
-  if (key == KEY_CAPSLOCK && !released) {
-    caps_active = !caps_active;
-    return 0;
-  }
-  // non-modifier release: ignore
-  if (released) {
-    return 0;
-  }
-  if (key == KEY_BACKSPACE) {
-    delete_char();
-    return 0;
-  }
-  if (key == KEY_ENTER) {
-    print_nl();
-  }
-  bool upper = shift_held ^ caps_active; // XOR: caps inverts shift
-  char ascii = scancode_to_ascii(key, extended, upper);
+  /* Capture and reset extended before any early return, so a released
+     extended key (e.g. arrow-up release) never leaves the flag stuck. */
+  bool was_extended = extended;
   extended = false;
-  return ascii;
+
+  handle_modifier(key, released);
+  if (released)
+    return 0;
+
+  handle_navigation(key);
+
+  bool upper = shift_held ^ caps_active;
+  return scancode_to_ascii(key, was_extended, upper);
 }
 
 void keyboard_irq(void) {
+  if (!(inb(PS2_STATUS) & 0x01)) // data not ready, bail
+    return;
   uint8_t scancode = inb(PS2_DATA);
+  if (scancode == 0x00) // paranoia: drop overrun/error codes
+    return;
   kbd_buf[kbd_head] = scancode;
-  kbd_head = (kbd_head + 1);
+  kbd_head = (kbd_head + 1) % 256;
 }

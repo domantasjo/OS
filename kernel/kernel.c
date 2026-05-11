@@ -9,6 +9,7 @@ void kernel_main(void) {
     if (key >= 0x20 && key <= 0x7E) {
       printchar(key);
     }
+
     render_vga();
   }
 }

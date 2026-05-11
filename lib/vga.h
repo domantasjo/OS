@@ -8,9 +8,13 @@
 void printchar(char character);
 void print(const char *string);
 void print_nl(void);
-int get_cols(void);
-void set_cols(int cols);
 void render_vga(void);
 void print_nl(void);
 void delete_char(void);
-volatile char *get_cell(void);
+int get_line_length(int row);
+int get_row(void);
+int get_col(void);
+void cursor_left(void);
+void cursor_right(void);
+void cursor_up(void);
+void cursor_down(void);
