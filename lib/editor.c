@@ -8,9 +8,6 @@ static Line lines[MAX_ROWS];
 static int last_used_row;
 static int viewport_top = 0;
 bool is_editor_open = false;
-// =====================
-// Cursor movement logic
-// =====================
 
 static Cursor cursor = {0, 0};
 
@@ -53,6 +50,9 @@ static void move_up(void) {
 
   cursor.row--;
   cursor.col = min(cursor.col, lines[cursor.row].line_length);
+  if (cursor.row < viewport_top) {
+    viewport_top--;
+  }
 }
 
 static void move_down(void) {
@@ -62,6 +62,9 @@ static void move_down(void) {
   if (cursor.row + 1 <= last_used_row) {
     cursor.row++;
     cursor.col = min(cursor.col, lines[cursor.row].line_length);
+  }
+  if (cursor.row >= viewport_top + VGA_ROWS) {
+    viewport_top++;
   }
 }
 
@@ -96,24 +99,49 @@ void delete_char_editor(void) {
   }
 }
 
+// If someone's reading this, just pretend you don't see this monstrosity.
 void press_enter_editor(void) {
-  if (cursor.row + 1 >= MAX_ROWS)
+  if (cursor.row + 1 >= MAX_ROWS) // If you are at the end of the buffer and
+                                  // want to add a newline, return
     return;
-  int old_row = cursor.row;
-  last_used_row++;
-  for (int i = last_used_row; i > old_row; i--) {
-    lines[i] = lines[i - 1];
+  if (cursor.col ==
+      0) { // If cursor is at col 0 and presses enter, it downshifts the whole
+           // row, instead of writing a newline
+    last_used_row++; // If last used row was 4, it is now 5 since everything is
+                     // getting downshifted
+    for (int i = last_used_row; i > cursor.row;
+         i--) { // Shift every row from the bottom up to current row down by one
+      lines[i] = lines[i - 1];
+    }
+    for (int j = 0; j < VGA_COLS; j++) // Clear the now-empty row
+      lines[cursor.row].chars[j] = ' ';
+    lines[cursor.row].line_length = 0;
+    cursor.row++; // Move cursor onto the pushed-down original row
+  } else {
+    last_used_row++;
+    for (int i = last_used_row; i > cursor.row + 1;
+         i--) { // Shift every row below the new line down by one
+      lines[i] = lines[i - 1];
+    }
+    int new_len =
+        lines[cursor.row].line_length -
+        cursor.col; // Length of text after cursor that moves to the new line
+    for (int j = 0; j < new_len;
+         j++) { // Move text after cursor to the new line and clear it from the
+                // current line
+      lines[cursor.row + 1].chars[j] = lines[cursor.row].chars[cursor.col + j];
+      lines[cursor.row].chars[cursor.col + j] = ' ';
+    }
+    lines[cursor.row + 1].line_length = new_len;
+    lines[cursor.row].line_length =
+        cursor.col; // Current line now ends at the cursor position
+    cursor.row++;
+    cursor.col = 0;
   }
-  // clear new line
-  for (int j = 0; j < VGA_COLS; j++)
-    lines[old_row + 1].chars[j] = ' ';
-  lines[old_row + 1].line_length = 0;
-  cursor.row = old_row + 1;
-  cursor.col = 0;
-  if (cursor.row >= 24)
+  if (cursor.row >= VGA_ROWS) {
     viewport_top++;
+  } // Scroll viewport down if cursor moves past the visible area
 }
-
 void print(const char *string) {
   for (int i = 0; string[i] != 0; i++) {
     vga_printchar(string[i], &cursor, lines, 0);

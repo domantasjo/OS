@@ -30,7 +30,7 @@ void render_vga(Line lines[], int viewport_top, Cursor cursor) {
     }
   }
 
-  set_cursor(cursor.row + viewport_top, cursor.col);
+  set_cursor(cursor.row - viewport_top, cursor.col);
 }
 
 void clear_line(Line *line) {

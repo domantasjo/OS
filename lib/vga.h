@@ -2,7 +2,7 @@
 #include "stdint.h"
 #define VGA_BUFFER 0xB8000
 #define VGA_COLS 80
-#define VGA_ROWS 25
+#define VGA_ROWS 24
 #define CSL_ROWS 1000
 
 extern volatile char *vga;
