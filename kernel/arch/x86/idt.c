@@ -16,16 +16,16 @@ void interrupt_handler(uint32_t vector, uint32_t err) {
   if (vector < 32) {
     switch (vector) {
     case 0:
-      print("Division by zero");
+      // print("Division by zero");
       break;
     case 6:
-      print("Invalid opcode");
+      // print("Invalid opcode");
       break;
     case 13:
-      print("General protection fault");
+      // print("General protection fault");
       break;
     case 14:
-      print("Page fault");
+      // print("Page fault");
       break;
     }
     __asm__ volatile("cli;hlt");

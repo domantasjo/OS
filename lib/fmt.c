@@ -1,5 +1,4 @@
 #include "fmt.h"
-#include "vga.h"
 #include <stdint.h>
 
 void uint16_to_string(uint16_t value, char *str) {

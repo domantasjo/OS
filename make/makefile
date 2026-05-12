@@ -3,12 +3,10 @@ build := $(root)/build
 cc    := i686-elf-gcc
 ld    := i686-elf-ld
 as    := nasm
-
 cflags := -ffreestanding -m32 -nostdlib -nostartfiles -nodefaultlibs \
           -I$(root)/kernel -I$(root)/kernel/arch/x86 \
           -I$(root)/drivers -I$(root)/lib \
           -MMD -MP
-
 ldflags := -T $(root)/make/linker.ld --oformat binary
 
 objs := \
@@ -22,12 +20,13 @@ objs := \
     $(build)/drivers/keyboard.o \
     $(build)/lib/helper.o \
     $(build)/lib/fmt.o \
-    $(build)/lib/vga.o
+    $(build)/lib/vga.o \
+    $(build)/lib/console.o \
+    $(build)/lib/editor.o
 
 all: $(build)/os-image.bin
 
 # ── Bootloader ────────────────────────────────────────────────────────────────
-
 $(build)/boot.bin: $(root)/bootloader/bootloader.asm \
                    $(root)/bootloader/print.asm \
                    $(root)/bootloader/disk.asm
@@ -35,47 +34,16 @@ $(build)/boot.bin: $(root)/bootloader/bootloader.asm \
 	$(as) -f bin -i $(root)/bootloader/ $< -o $@
 
 # ── C sources ─────────────────────────────────────────────────────────────────
-
-$(build)/kernel/kernel.o: $(root)/kernel/kernel.c
-	mkdir -p $(dir $@)
-	$(cc) $(cflags) -c $< -o $@
-
-$(build)/kernel/arch/x86/idt.o: $(root)/kernel/arch/x86/idt.c
-	mkdir -p $(dir $@)
-	$(cc) $(cflags) -c $< -o $@
-
-$(build)/kernel/arch/x86/pic.o: $(root)/kernel/arch/x86/pic.c
-	mkdir -p $(dir $@)
-	$(cc) $(cflags) -c $< -o $@
-
-$(build)/kernel/arch/x86/pit.o: $(root)/kernel/arch/x86/pit.c
-	mkdir -p $(dir $@)
-	$(cc) $(cflags) -c $< -o $@
-
-$(build)/drivers/keyboard.o: $(root)/drivers/keyboard.c
-	mkdir -p $(dir $@)
-	$(cc) $(cflags) -c $< -o $@
-
-$(build)/lib/helper.o: $(root)/lib/helper.c
-	mkdir -p $(dir $@)
-	$(cc) $(cflags) -c $< -o $@
-
-$(build)/lib/fmt.o: $(root)/lib/fmt.c
-	mkdir -p $(dir $@)
-	$(cc) $(cflags) -c $< -o $@
-
-$(build)/lib/vga.o: $(root)/lib/vga.c
+$(build)/%.o: $(root)/%.c
 	mkdir -p $(dir $@)
 	$(cc) $(cflags) -c $< -o $@
 
 # ── ASM sources ───────────────────────────────────────────────────────────────
-
 $(build)/kernel/entry.o: $(root)/kernel/entry.asm
 	mkdir -p $(dir $@)
 	$(as) -f elf $< -o $@
 
 $(build)/kernel/arch/x86/idt_asm.o: $(root)/kernel/arch/x86/idt.asm
-
 	mkdir -p $(dir $@)
 	$(as) -f elf $< -o $@
 
@@ -84,18 +52,15 @@ $(build)/kernel/arch/x86/pic_asm.o: $(root)/kernel/arch/x86/pic.asm
 	$(as) -f elf $< -o $@
 
 # ── Link ──────────────────────────────────────────────────────────────────────
-
 $(build)/kernel.bin: $(objs) $(root)/make/linker.ld
 	$(ld) $(ldflags) -o $@ $(objs)
 
 # ── Final image ───────────────────────────────────────────────────────────────
-
 $(build)/os-image.bin: $(build)/boot.bin $(build)/kernel.bin
 	cat $^ > $@
 	truncate -s 65536 $@
 
 # ── Utility ───────────────────────────────────────────────────────────────────
-
 run: $(build)/os-image.bin
 	qemu-system-i386 -drive format=raw,file=$(build)/os-image.bin
 
@@ -103,5 +68,4 @@ clean:
 	rm -rf $(build)
 
 .PHONY: all run clean
-
 -include $(shell find $(build) -name '*.d' 2>/dev/null)

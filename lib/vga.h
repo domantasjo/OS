@@ -5,16 +5,21 @@
 #define VGA_ROWS 25
 #define CSL_ROWS 1000
 
-void printchar(char character);
-void print(const char *string);
-void print_nl(void);
-void render_vga(void);
-void print_nl(void);
-void delete_char(void);
-int get_line_length(int row);
-int get_row(void);
-int get_col(void);
-void cursor_left(void);
-void cursor_right(void);
-void cursor_up(void);
-void cursor_down(void);
+extern volatile char *vga;
+typedef struct {
+  int row;
+  int col;
+} Cursor;
+
+typedef struct {
+  char chars[VGA_COLS];
+  int line_length;
+} Line;
+
+volatile char *vga_at(int row, int col);
+int min(int a, int b);
+void printchar(char c, Cursor *cursor, Line lines[CSL_ROWS], int col_start);
+void set_cursor(int row, int col);
+void render_vga(Line lines[], int viewport_top, Cursor cursor);
+void delete_char(Cursor *cursor, Line lines[], int col_start);
+void clear_line(Line *line);

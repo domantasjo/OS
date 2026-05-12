@@ -1,6 +1,7 @@
 #include "keyboard.h"
 #include "../kernel/arch/x86/io.h"
-#include "../lib/vga.h"
+#include "../lib/console.h"
+#include "../lib/editor.h"
 #include <stdbool.h>
 
 static volatile uint8_t kbd_buf[256];
@@ -181,25 +182,50 @@ static void handle_modifier(enum KEYCODE key, bool released) {
     caps_active = !caps_active;
 }
 
-static void handle_navigation(enum KEYCODE key) {
+static void handle_navigation_editor(enum KEYCODE key) {
   switch (key) {
   case KEY_BACKSPACE:
-    delete_char();
+    delete_char_editor();
     break;
   case KEY_ENTER:
-    print_nl();
+    print_nl_editor();
     break;
   case KEY_LEFT:
-    cursor_left();
+    editor_cursor_left();
     break;
   case KEY_RIGHT:
-    cursor_right();
+    editor_cursor_right();
     break;
   case KEY_UP:
-    cursor_up();
+    editor_cursor_up();
     break;
   case KEY_DOWN:
-    cursor_down();
+    editor_cursor_down();
+    break;
+  default:
+    break;
+  }
+}
+
+static void handle_navigation_console(enum KEYCODE key) {
+  switch (key) {
+  case KEY_BACKSPACE:
+    delete_char_console();
+    break;
+  case KEY_ENTER:
+    print_nl_console();
+    break;
+  case KEY_LEFT:
+    console_cursor_left();
+    break;
+  case KEY_RIGHT:
+    console_cursor_right();
+    break;
+  case KEY_UP:
+    console_cursor_up();
+    break;
+  case KEY_DOWN:
+    console_cursor_down();
     break;
   default:
     break;
@@ -224,8 +250,11 @@ const char keyboard_poll(void) {
   handle_modifier(key, released);
   if (released)
     return 0;
-
-  handle_navigation(key);
+  if (is_editor_open == true) {
+    handle_navigation_editor(key);
+  } else {
+    handle_navigation_console(key);
+  }
 
   bool upper = shift_held ^ caps_active;
   return scancode_to_ascii(key, was_extended, upper);
