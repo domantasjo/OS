@@ -18,8 +18,8 @@ typedef struct {
 
 volatile char *vga_at(int row, int col);
 int min(int a, int b);
-void printchar(char c, Cursor *cursor, Line lines[CSL_ROWS], int col_start);
+void vga_printchar(char c, Cursor *cursor, Line lines[CSL_ROWS], int col_start);
 void set_cursor(int row, int col);
 void render_vga(Line lines[], int viewport_top, Cursor cursor);
-void delete_char(Cursor *cursor, Line lines[], int col_start);
+void vga_delete_char(Cursor *cursor, Line lines[], int col_start);
 void clear_line(Line *line);

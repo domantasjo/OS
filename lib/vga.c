@@ -40,7 +40,7 @@ void clear_line(Line *line) {
   line->line_length = 0;
 }
 
-void delete_char(Cursor *cursor, Line lines[], int col_start) {
+void vga_delete_char(Cursor *cursor, Line lines[], int col_start) {
   if (cursor->row == 0 && cursor->col == 0)
     return;
 
@@ -58,7 +58,8 @@ void delete_char(Cursor *cursor, Line lines[], int col_start) {
   }
 }
 
-void printchar(char c, Cursor *cursor, Line lines[CSL_ROWS], int col_start) {
+void vga_printchar(char c, Cursor *cursor, Line lines[CSL_ROWS],
+                   int col_start) {
   int r = cursor->row;
 
   int col = cursor->col;

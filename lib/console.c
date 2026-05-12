@@ -9,19 +9,9 @@ int cmd_tail = 0; // Reading
 Cursor cursor = {CSL_ROW_START, CSL_COL_START};
 int viewport_top = 0;
 
-void delete_char_console(void) { delete_char(&cursor, lines, 7); }
+void delete_char_console(void) { vga_delete_char(&cursor, lines, 7); }
 
-void print_prompt() {
-  Cursor old_cursor = cursor;
-
-  cursor.col = 0;
-  for (int i = 0; i < 7; i++) {
-    lines[cursor.row].chars[i] = PROMPT[i];
-  }
-  cursor.col = old_cursor.col;
-}
-
-void print_nl_console(void) {
+void press_enter_console(void) {
   if (cursor.row + 1 >= CSL_ROWS)
     return;
 
@@ -37,6 +27,15 @@ void print_nl_console(void) {
     viewport_top++;
 
   clear_line(&current_line);
+}
+
+void print_prompt(void) {
+  Cursor old_cursor = cursor;
+  cursor.col = 0;
+  for (int i = 0; i < 7; i++) {
+    lines[cursor.row].chars[i] = PROMPT[i];
+  }
+  cursor.col = old_cursor.col;
 }
 
 static void move_left(void) {
@@ -75,6 +74,6 @@ void console_cursor_down(void) {
 void printchar_console(char c) {
   current_line.chars[cursor.col] = c;
   current_line.line_length++;
-  printchar(c, &cursor, lines, 7);
+  vga_printchar(c, &cursor, lines, 7);
 }
-void render_vga_console(void) { render_vga(lines, viewport_top, cursor); }
+void render_console(void) { render_vga(lines, viewport_top, cursor); }

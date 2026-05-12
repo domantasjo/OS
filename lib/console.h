@@ -5,12 +5,12 @@
 #define PROMPT "pc ~ $ "
 
 void delete_char_console(void);
-void print_nl_console(void);
+void press_enter_console(void);
 
 void console_cursor_left(void);
 void console_cursor_right(void);
 void console_cursor_up(void);
 void console_cursor_down(void);
 void printchar_console(char c);
-void render_vga_console(void);
+void render_console(void);
 void print_prompt(void);

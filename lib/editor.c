@@ -5,7 +5,6 @@
 #define MAX_COLS VGA_COLS
 
 static Line lines[MAX_ROWS];
-static int line_length[MAX_ROWS];
 static int last_used_row;
 static int viewport_top = 0;
 bool is_editor_open = false;
@@ -21,25 +20,27 @@ static void move_left(void) {
     return;
   }
 
-  if (cursor.row > 0 && line_length[cursor.row - 1] > 0) {
+  if (cursor.row > 0 && lines[cursor.row - 1].line_length > 0) {
     cursor.row--;
-    cursor.col = line_length[cursor.row];
+    cursor.col = lines[cursor.row].line_length;
   }
 }
 
 static void move_right(void) {
-  if (cursor.col < line_length[cursor.row]) {
+  if (cursor.col < lines[cursor.row].line_length) {
     cursor.col++;
     return;
   }
 
-  if (cursor.row + 1 < MAX_ROWS && line_length[cursor.row + 1] > 0) {
+  if (cursor.row + 1 < MAX_ROWS && lines[cursor.row + 1].line_length > 0) {
     cursor.row++;
     cursor.col = 0;
   }
 }
 
-static void printchar_editor(char c) { printchar(c, &cursor, lines, 0); }
+void printchar_editor(char c) { vga_printchar(c, &cursor, lines, 0); }
+
+void render_editor(void) { render_vga(lines, viewport_top, cursor); }
 
 // please god forgive me for the slop that i am writing
 // to anyone reading this code for some reason, just now that this is a
@@ -51,7 +52,7 @@ static void move_up(void) {
     return;
 
   cursor.row--;
-  cursor.col = min(cursor.col, line_length[cursor.row]);
+  cursor.col = min(cursor.col, lines[cursor.row].line_length);
 }
 
 static void move_down(void) {
@@ -60,7 +61,7 @@ static void move_down(void) {
 
   if (cursor.row + 1 <= last_used_row) {
     cursor.row++;
-    cursor.col = min(cursor.col, line_length[cursor.row]);
+    cursor.col = min(cursor.col, lines[cursor.row].line_length);
   }
 }
 
@@ -68,12 +69,12 @@ static void move_down(void) {
 // Editing
 // =====================
 void delete_char_editor(void) {
-  delete_char(&cursor, lines, 7);
+  vga_delete_char(&cursor, lines, 0);
 
   // merge with previous line
   if (cursor.row > 0) {
-    int prev_len = line_length[cursor.row - 1];
-    int curr_len = line_length[cursor.row];
+    int prev_len = lines[cursor.row - 1].line_length;
+    int curr_len = lines[cursor.row].line_length;
 
     cursor.row--;
     cursor.col = prev_len;
@@ -95,24 +96,31 @@ void delete_char_editor(void) {
   }
 }
 
-void print_nl_editor(void) {
+void press_enter_editor(void) {
   if (cursor.row + 1 >= MAX_ROWS)
     return;
-
-  cursor.col = lines[++cursor.row].line_length;
-  last_used_row = cursor.row;
-
+  int old_row = cursor.row;
+  last_used_row++;
+  for (int i = last_used_row; i > old_row; i--) {
+    lines[i] = lines[i - 1];
+  }
+  // clear new line
+  for (int j = 0; j < VGA_COLS; j++)
+    lines[old_row + 1].chars[j] = ' ';
+  lines[old_row + 1].line_length = 0;
+  cursor.row = old_row + 1;
+  cursor.col = 0;
   if (cursor.row >= 24)
     viewport_top++;
 }
 
 void print(const char *string) {
   for (int i = 0; string[i] != 0; i++) {
-    printchar(string[i], &cursor, lines, 0);
+    vga_printchar(string[i], &cursor, lines, 0);
   }
 }
 
-int get_line_length(int row) { return line_length[row]; }
+int get_line_length(int row) { return lines[row].line_length; }
 
 int get_row(void) { return cursor.row; }
 

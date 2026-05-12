@@ -22,7 +22,8 @@ objs := \
     $(build)/lib/fmt.o \
     $(build)/lib/vga.o \
     $(build)/lib/console.o \
-    $(build)/lib/editor.o
+    $(build)/lib/editor.o \
+		$(build)/lib/terminal.o
 
 all: $(build)/os-image.bin
 
