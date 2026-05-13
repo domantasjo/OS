@@ -5,9 +5,13 @@
 #define MAX_COLS VGA_COLS
 
 static Line lines[MAX_ROWS];
+static int line_length[MAX_ROWS];
 static int last_used_row;
 static int viewport_top = 0;
 bool is_editor_open = false;
+// =====================
+// Cursor movement logic
+// =====================
 
 static Cursor cursor = {0, 0};
 
@@ -34,16 +38,6 @@ static void move_right(void) {
     cursor.col = 0;
   }
 }
-
-void printchar_editor(char c) { vga_printchar(c, &cursor, lines, 0); }
-
-void render_editor(void) { render_vga(lines, viewport_top, cursor); }
-
-// please god forgive me for the slop that i am writing
-// to anyone reading this code for some reason, just now that this is a
-// placeholder that is meant to just work, until i change it to a smarter
-// system.
-
 static void move_up(void) {
   if (cursor.row == 0)
     return;
@@ -67,17 +61,25 @@ static void move_down(void) {
     viewport_top++;
   }
 }
+void printchar_editor(char c) { vga_printchar(c, &cursor, lines, 0); }
+
+void render_editor(void) { render_vga(lines, viewport_top, cursor); }
+
+// please god forgive me for the slop that i am writing
+// to anyone reading this code for some reason, just now that this is a
+// placeholder that is meant to just work, until i change it to a smarter
+// system.
 
 // =====================
 // Editing
 // =====================
 void delete_char_editor(void) {
-  vga_delete_char(&cursor, lines, 0);
+  vga_delete_char(&cursor, lines, 7);
 
   // merge with previous line
   if (cursor.row > 0) {
-    int prev_len = lines[cursor.row - 1].line_length;
-    int curr_len = lines[cursor.row].line_length;
+    int prev_len = line_length[cursor.row - 1];
+    int curr_len = line_length[cursor.row];
 
     cursor.row--;
     cursor.col = prev_len;
@@ -99,7 +101,6 @@ void delete_char_editor(void) {
   }
 }
 
-// If someone's reading this, just pretend you don't see this monstrosity.
 void press_enter_editor(void) {
   if (cursor.row + 1 >= MAX_ROWS) // If you are at the end of the buffer and
                                   // want to add a newline, return
@@ -142,13 +143,14 @@ void press_enter_editor(void) {
     viewport_top++;
   } // Scroll viewport down if cursor moves past the visible area
 }
+
 void print(const char *string) {
   for (int i = 0; string[i] != 0; i++) {
     vga_printchar(string[i], &cursor, lines, 0);
   }
 }
 
-int get_line_length(int row) { return lines[row].line_length; }
+int get_line_length(int row) { return line_length[row]; }
 
 int get_row(void) { return cursor.row; }
 

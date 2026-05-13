@@ -2,32 +2,25 @@
 #include "stdbool.h"
 #include "vga.h"
 
-Line lines[CSL_ROWS] = {0};
-Line commands[CSL_ROWS];
-Line current_line;
-int cmd_head = 0; // Writing
-int cmd_tail = 0; // Reading
-Cursor cursor = {CSL_ROW_START, CSL_COL_START};
-int viewport_top = 0;
+static Line lines[CSL_ROWS] = {0};
+static Line commands[CSL_ROWS];
+static Line current_line;
+static Cursor cursor = {CSL_ROW_START, CSL_COL_START};
 
-void delete_char_console(void) { vga_delete_char(&cursor, lines, 7); }
+static int viewport_top = 0;
+static int cmd_head = 0; // Writing
+static int cmd_tail = 0; // Reading
 
-void print_prompt(void) {
-  Cursor old_cursor = cursor;
-  cursor.col = 0;
-  for (int i = 0; i < 7; i++) {
-    lines[cursor.row].chars[i] = PROMPT[i];
-  }
-  cursor.col = old_cursor.col;
-}
+static void version(void);
+static void clear(void);
+static void print_output(char *str);
 
-static void print_output(char *str) {
-  cursor.col = 0;
-  for (int i = 0; str[i] != '\0'; i++) {
-    vga_printchar(str[i], &cursor, lines, 0);
-  }
-  cursor.row++;
-  cursor.col = CSL_COL_START;
+Command command_list[] = {{"-v", version}, {"clear", clear}};
+
+//------------------------------------------------------------------
+
+void delete_char_console(void) {
+  vga_delete_char(&cursor, lines, CSL_COL_START);
 }
 
 void version(void) { print_output("Current version of this OS is v0.0.1"); }
@@ -40,10 +33,43 @@ bool check_functions(char *function) {
   return true;
 }
 
+void functions() {
+  for (int i = 0; i < sizeof(command_list) / sizeof(command_list[0]); i++) {
+    if (check_functions(command_list[i].cmd)) {
+      command_list[i].fn();
+      return;
+    }
+  }
+  print_output("Unknown command, available commands are: -v, clear");
+}
+
 void clear(void) {
   for (int i = 0; i < CSL_ROWS + viewport_top; i++) {
     clear_line(&lines[i]);
   }
+}
+
+//------------------------------------------------------------------
+
+static void scroll(void) {
+  if (cursor.row >= viewport_top + VGA_ROWS)
+    viewport_top++;
+}
+
+void print_prompt(void) {
+  for (int i = 0; i < CSL_COL_START; i++) {
+    lines[cursor.row].chars[i] = PROMPT[i];
+  }
+}
+
+static void print_output(char *str) {
+  cursor.col = 0;
+  for (int i = 0; str[i] != '\0'; i++) {
+    vga_printchar(str[i], &cursor, lines, 0);
+  }
+  cursor.row++;
+  cursor.col = CSL_COL_START;
+  scroll();
 }
 
 void press_enter_console(void) {
@@ -56,17 +82,9 @@ void press_enter_console(void) {
     cmd_tail++;
   }
   cursor.row++;
-  if (check_functions("-v")) {
-    version();
-  } else if (check_functions("clear")) {
-    clear();
-  } else {
-    print_output("Unknown command. Current available commands are: -v, clear");
-  }
+  functions();
   print_prompt();
-
-  if (cursor.row >= viewport_top + CSL_ROWS)
-    viewport_top++;
+  scroll();
   clear_line(&current_line);
 }
 
@@ -83,6 +101,8 @@ static void move_right(void) {
     return;
   }
 }
+
+//------------------------------------------------------------------
 
 void console_cursor_left(void) { return move_left(); }
 void console_cursor_right(void) { return move_right(); }
@@ -106,6 +126,6 @@ void console_cursor_down(void) {
 void printchar_console(char c) {
   current_line.chars[cursor.col] = c;
   current_line.line_length++;
-  vga_printchar(c, &cursor, lines, 7);
+  vga_printchar(c, &cursor, lines, CSL_COL_START);
 }
 void render_console(void) { render_vga(lines, viewport_top, cursor); }
