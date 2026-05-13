@@ -144,7 +144,7 @@ void press_enter_editor(void) {
   } // Scroll viewport down if cursor moves past the visible area
 }
 
-void print(const char *string) {
+void print_editor(const char *string) {
   for (int i = 0; string[i] != 0; i++) {
     vga_printchar(string[i], &cursor, lines, 0);
   }

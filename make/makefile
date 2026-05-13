@@ -23,7 +23,8 @@ objs := \
     $(build)/lib/vga.o \
     $(build)/lib/console.o \
     $(build)/lib/editor.o \
-		$(build)/lib/terminal.o
+		$(build)/lib/terminal.o \
+		$(build)/lib/string.o
 
 all: $(build)/os-image.bin
 

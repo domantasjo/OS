@@ -62,7 +62,7 @@ void print_prompt(void) {
   }
 }
 
-static void print_output(char *str) {
+void print_output(char *str) {
   cursor.col = 0;
   for (int i = 0; str[i] != '\0'; i++) {
     vga_printchar(str[i], &cursor, lines, 0);
@@ -81,6 +81,7 @@ void press_enter_console(void) {
     commands[cmd_head++] = lines[cursor.row];
     cmd_tail++;
   }
+
   cursor.row++;
   functions();
   print_prompt();
@@ -127,5 +128,10 @@ void printchar_console(char c) {
   current_line.chars[cursor.col] = c;
   current_line.line_length++;
   vga_printchar(c, &cursor, lines, CSL_COL_START);
+}
+
+void print_int(char *str) {
+  cursor.row++;
+  print_output(str);
 }
 void render_console(void) { render_vga(lines, viewport_top, cursor); }

@@ -198,7 +198,7 @@ Goal: Kernel receives and decodes keystrokes.
 
 ---
 
-## [ ] Step 11: Console / TTY
+## [X] Step 11: Console / TTY
 
 Implement:
 
@@ -212,7 +212,7 @@ Goal: Interactive console -- user types, OS echoes and buffers input.
 
 # PHASE 6 -- Memory Management
 
-## [ ] Step 12: Detect Physical Memory
+## [X] Step 12: Detect Physical Memory
 
 Use BIOS `int 0x15, E820` (called before entering protected mode) or assume
 a safe usable region (e.g. 1 MB - 16 MB).

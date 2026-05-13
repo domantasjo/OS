@@ -12,6 +12,8 @@ void render(void) {
 
 void toggle_editor_open(void) { is_editor_open = !is_editor_open; }
 
+void print(char *str) { print_int(str); }
+
 void printchar(char c) {
   if (is_editor_open) {
     printchar_editor(c);

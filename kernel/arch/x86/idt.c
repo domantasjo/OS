@@ -1,7 +1,6 @@
 #include "idt.h"
 #include "../../../drivers/keyboard.h"
-#include "../../../lib/helper.h"
-#include "../../../lib/vga.h"
+#include "../../../lib/terminal.h"
 #include "gdt.h"
 #include "io.h"
 #include "pic.h"
@@ -14,20 +13,24 @@ extern void *isr_stub_table[];
 
 void interrupt_handler(uint32_t vector, uint32_t err) {
   if (vector < 32) {
+    if (is_editor_open) {
+      toggle_editor_open();
+    }
     switch (vector) {
     case 0:
-      // print("Division by zero");
+      print("Division by zero");
       break;
     case 6:
-      // print("Invalid opcode");
+      print("Invalid opcode");
       break;
     case 13:
-      // print("General protection fault");
+      print("General protection fault");
       break;
     case 14:
-      // print("Page fault");
+      print("Page fault");
       break;
     }
+    render();
     __asm__ volatile("cli;hlt");
   } else if (vector < 40) {
     switch (vector) {

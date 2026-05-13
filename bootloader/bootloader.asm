@@ -14,6 +14,7 @@ call disk_load
 mov bx, MSG_LOADED
 call print
 call print_nl
+call do_e820
 
 ; Switch to 32-bit protected mode
 cli            ; Disable interrupts
@@ -33,6 +34,7 @@ jmp CODE_SEG:init_pm ; Far jump to flush pipeline and enter 32-bit mode
 
 %include "print.asm"
 %include "disk.asm"
+%include "memory.asm"
 
 ; ── GDT ─────────────────────────────────────────────────────────────────────
 gdt_start:

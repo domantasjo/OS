@@ -1,8 +1,6 @@
 #pragma once
 #include <stdbool.h>
 
-extern bool is_editor_open;
-
 void editor_cursor_up(void);
 void editor_cursor_down(void);
 void editor_cursor_left(void);
