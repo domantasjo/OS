@@ -4,6 +4,7 @@
 #include "../kernel/arch/x86/pic.h"
 #include "../kernel/arch/x86/pit.h"
 #include <stdint.h>
+#include "../kernel/memory.h"
 
 void init(void) {
   idt_init();
@@ -14,4 +15,8 @@ void init(void) {
   init_pit();
   irq_enable(0);
   irq_enable(1);
+  pmm_init();
+  paging_init();
+  heap_init();
+
 }

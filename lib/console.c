@@ -69,6 +69,7 @@ void print_output(char *str) {
   }
   cursor.row++;
   cursor.col = CSL_COL_START;
+  print_prompt();
   scroll();
 }
 
@@ -138,9 +139,8 @@ void move_up_console(void) {
 void move_down_console(void) {
   if (cursor.row + 1 >= MAX_ROWS)
     return;
-
-    cursor.row++;
-    cursor.col = min(cursor.col, lines[cursor.row].line_length);
+  cursor.row++;
+  cursor.col = min(cursor.col, lines[cursor.row].line_length);
   if (cursor.row >= viewport_top + VGA_ROWS) {
     viewport_top++;
   }

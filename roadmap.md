@@ -245,7 +245,7 @@ Goal: Kernel runs with virtual memory enabled; page faults are caught by the IDT
 
 ---
 
-## [ ] Step 15: Kernel Heap (kmalloc)
+## [X] Step 15: Kernel Heap (kmalloc)
 
 Build a heap allocator on top of the page allocator:
 
@@ -258,7 +258,7 @@ Goal: `kmalloc(size)` / `kfree(ptr)` for arbitrary-size kernel allocations.
 
 # PHASE 7 -- Processes & Scheduling
 
-## [ ] Step 16: Process Control Block (PCB)
+## [X] Step 16: Process Control Block (PCB)
 
 Define a process structure:
 

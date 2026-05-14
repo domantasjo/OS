@@ -5,7 +5,6 @@
 
 extern uint32_t kernel_end;
 
-
 typedef struct SMAP_entry {
   uint32_t addr_low;
   uint32_t addr_high;
@@ -20,4 +19,6 @@ void* alloc_page(void);
 void free_page(void* addr);
 bool bitmap_test(uint32_t page);
 void* memset(void* ptr, int value, size_t size);
-
+void heap_init(void);
+void* kmalloc(uint32_t size);
+void paging_init(void);
