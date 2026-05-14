@@ -22,3 +22,5 @@ void printchar_console(char c);
 void render_console(void);
 void print_prompt(void);
 void print_int(char *str);
+void move_up_console(void);
+void move_down_console(void);

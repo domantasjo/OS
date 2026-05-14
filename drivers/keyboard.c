@@ -202,8 +202,10 @@ static void handle_navigation(enum KEYCODE key) {
     cursor_down();
     break;
   case KEY_PAGEDOWN:
-    toggle_editor_open();
+    move_down_console();
     break;
+  case KEY_PAGEUP:
+    move_up_console();
   default:
     break;
   }

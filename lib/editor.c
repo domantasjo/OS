@@ -1,9 +1,6 @@
 #include "editor.h"
 #include "vga.h"
 
-#define MAX_ROWS CSL_ROWS
-#define MAX_COLS VGA_COLS
-
 static Line lines[MAX_ROWS];
 static int line_length[MAX_ROWS];
 static int last_used_row;
@@ -92,7 +89,7 @@ void delete_char_editor(void) {
     lines[cursor.row].line_length = prev_len + curr_len;
 
     for (int i = cursor.row + 1; i <= last_used_row; i++) {
-      for (int j = 0; j < VGA_COLS; j++) {
+      for (int j = 0; j < MAX_COLS; j++) {
         lines[i].chars[j] = lines[i + 1].chars[j];
       }
       lines[i].line_length = lines[i + 1].line_length;
@@ -114,7 +111,7 @@ void press_enter_editor(void) {
          i--) { // Shift every row from the bottom up to current row down by one
       lines[i] = lines[i - 1];
     }
-    for (int j = 0; j < VGA_COLS; j++) // Clear the now-empty row
+    for (int j = 0; j < MAX_COLS; j++) // Clear the now-empty row
       lines[cursor.row].chars[j] = ' ';
     lines[cursor.row].line_length = 0;
     cursor.row++; // Move cursor onto the pushed-down original row

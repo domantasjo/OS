@@ -2,8 +2,8 @@
 #include "stdbool.h"
 #include "vga.h"
 
-static Line lines[CSL_ROWS] = {0};
-static Line commands[CSL_ROWS];
+static Line lines[MAX_ROWS] = {0};
+static Line commands[MAX_ROWS];
 static Line current_line;
 static Cursor cursor = {CSL_ROW_START, CSL_COL_START};
 
@@ -44,7 +44,7 @@ void functions() {
 }
 
 void clear(void) {
-  for (int i = 0; i < CSL_ROWS + viewport_top; i++) {
+  for (int i = 0; i < MAX_ROWS + viewport_top; i++) {
     clear_line(&lines[i]);
   }
 }
@@ -73,7 +73,7 @@ void print_output(char *str) {
 }
 
 void press_enter_console(void) {
-  if (cursor.row + 1 >= CSL_ROWS)
+  if (cursor.row + 1 >= MAX_ROWS)
     return;
 
   cursor.col = CSL_COL_START;
@@ -122,6 +122,28 @@ void console_cursor_down(void) {
     print_prompt();
   }
   cursor.col = lines[cursor.row].line_length + CSL_COL_START;
+}
+
+void move_up_console(void) {
+  if (cursor.row == 0)
+    return;
+
+  cursor.row--;
+  cursor.col = min(cursor.col, lines[cursor.row].line_length);
+  if (cursor.row < viewport_top) {
+    viewport_top--;
+  }
+}
+
+void move_down_console(void) {
+  if (cursor.row + 1 >= MAX_ROWS)
+    return;
+
+    cursor.row++;
+    cursor.col = min(cursor.col, lines[cursor.row].line_length);
+  if (cursor.row >= viewport_top + VGA_ROWS) {
+    viewport_top++;
+  }
 }
 
 void printchar_console(char c) {

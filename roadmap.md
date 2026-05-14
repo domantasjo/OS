@@ -221,7 +221,7 @@ Store a memory map for the physical memory manager.
 
 ---
 
-## [ ] Step 13: Physical Page Allocator
+## [X] Step 13: Physical Page Allocator
 
 Manage 4 KB physical pages:
 
@@ -232,7 +232,7 @@ Goal: Kernel can allocate and free physical pages.
 
 ---
 
-## [ ] Step 14: Paging & Virtual Memory
+## [X] Step 14: Paging & Virtual Memory
 
 Set up:
 

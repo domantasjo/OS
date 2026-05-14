@@ -14,7 +14,7 @@ void reverse(char *str, int length) {
 
 char *uint32_to_string(uint32_t num) {
   int i = 0;
-  char *str;
+  static char str[11];
 
   if (num == 0) {
     str[i++] = '0';
@@ -24,13 +24,11 @@ char *uint32_to_string(uint32_t num) {
 
   while (num != 0) {
     int rem = num % 10;
-    // Jei liekana > 9, naudojame raides (šešioliktainei sistemai)
     str[i++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
     num = num / 10;
   }
 
-  str[i] = '\0'; // Užbaigiame eilutę
-
+  str[i] = '\0'; 
   reverse(str, i);
 
   return str;

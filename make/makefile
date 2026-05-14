@@ -24,7 +24,10 @@ objs := \
     $(build)/lib/console.o \
     $(build)/lib/editor.o \
 		$(build)/lib/terminal.o \
-		$(build)/lib/string.o
+		$(build)/lib/string.o \
+		$(build)/kernel/memory.o \
+		$(build)/kernel/paging_asm.o \
+		$(build)/kernel/paging.o
 
 all: $(build)/os-image.bin
 
@@ -50,6 +53,10 @@ $(build)/kernel/arch/x86/idt_asm.o: $(root)/kernel/arch/x86/idt.asm
 	$(as) -f elf $< -o $@
 
 $(build)/kernel/arch/x86/pic_asm.o: $(root)/kernel/arch/x86/pic.asm
+	mkdir -p $(dir $@)
+	$(as) -f elf $< -o $@
+
+$(build)/kernel/paging_asm.o: $(root)/kernel/paging.asm
 	mkdir -p $(dir $@)
 	$(as) -f elf $< -o $@
 

@@ -2,9 +2,6 @@
 #include "../kernel/arch/x86/io.h"
 #include <stdbool.h>
 
-#define MAX_ROWS CSL_ROWS
-#define MAX_COLS VGA_COLS
-
 volatile char *vga = (volatile char *)VGA_BUFFER;
 volatile char *vga_at(int row, int col) {
   return (volatile char *)VGA_BUFFER + (row * MAX_COLS * 2) + col * 2;
@@ -21,7 +18,7 @@ void set_cursor(int row, int col) {
 }
 void render_vga(Line lines[], int viewport_top, Cursor cursor) {
   for (int i = 0; i < VGA_ROWS; i++) {
-    for (int j = 0; j < VGA_COLS; j++) {
+    for (int j = 0; j < MAX_COLS; j++) {
       volatile char *cell = vga_at(i, j);
 
       char c = lines[i + viewport_top].chars[j];
@@ -58,7 +55,7 @@ void vga_delete_char(Cursor *cursor, Line lines[], int col_start) {
   }
 }
 
-void vga_printchar(char c, Cursor *cursor, Line lines[CSL_ROWS],
+void vga_printchar(char c, Cursor *cursor, Line lines[MAX_ROWS],
                    int col_start) {
   int r = cursor->row;
 
