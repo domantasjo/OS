@@ -1,4 +1,8 @@
 extern interrupt_handler
+extern save_current_esp
+extern get_next_esp
+extern schedule
+
 
 %macro isr_err_stub 1
 isr_stub_%+%1:
@@ -18,11 +22,28 @@ isr_common:
     push dword [esp + 36]      ; err    (was at [esp+4]; now at [esp+36] after pusha)
     push dword [esp + 36]      ; vector (was at [esp]; now at [esp+32]; +4 from first push)
     call interrupt_handler
-    add esp, 8                 ; drop our 2 pushed args
-    popa                       ; restore regs
-    add esp, 8                 ; drop original vector + err
-    iret
+    add esp, 8
 
+    mov eax, [esp + 32]
+    cmp eax, 32
+    jne .no_switch
+
+    ; save esp directly into processes[current_process].esp
+    ; we need a C function that takes no args and saves esp internally
+    mov ebx, esp
+    push ebx
+    call save_current_esp
+    add esp, 4
+
+    call schedule
+
+    call get_next_esp
+    mov esp, eax
+
+    .no_switch:
+    popa
+    add esp, 8
+    iret
 isr_no_err_stub 0
 isr_no_err_stub 1
 isr_no_err_stub 2

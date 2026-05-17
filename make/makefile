@@ -27,7 +27,9 @@ objs := \
 		$(build)/lib/string.o \
 		$(build)/kernel/memory.o \
 		$(build)/kernel/paging_asm.o \
-		$(build)/kernel/paging.o
+		$(build)/kernel/paging.o \
+		$(build)/kernel/process_asm.o \
+		$(build)/kernel/process.o
 
 all: $(build)/os-image.bin
 
@@ -57,6 +59,10 @@ $(build)/kernel/arch/x86/pic_asm.o: $(root)/kernel/arch/x86/pic.asm
 	$(as) -f elf $< -o $@
 
 $(build)/kernel/paging_asm.o: $(root)/kernel/paging.asm
+	mkdir -p $(dir $@)
+	$(as) -f elf $< -o $@
+
+$(build)/kernel/process_asm.o: $(root)/kernel/process.asm
 	mkdir -p $(dir $@)
 	$(as) -f elf $< -o $@
 

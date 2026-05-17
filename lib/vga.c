@@ -60,20 +60,28 @@ void vga_printchar(char c, Cursor *cursor, Line lines[MAX_ROWS],
   int r = cursor->row;
 
   int col = cursor->col;
+  
+  if (cursor->row >= MAX_ROWS) return;
 
-  // shift right if inserting inside line
-  for (int i = lines[r].line_length + col_start; i > col; i--) {
-    lines[r].chars[i] = lines[r].chars[i - 1];
-  }
+
+  int end = lines[r].line_length + col_start;
+    if (end >= MAX_COLS) end = MAX_COLS - 1; // clamp
+    
+    for (int i = end; i > col; i--) {
+        lines[r].chars[i] = lines[r].chars[i - 1];
+    }
 
   lines[r].chars[col] = c;
   lines[r].line_length++;
 
-  cursor->col++;
 
-  if (cursor->col >= MAX_COLS) {
+  if (cursor->col + 1 > MAX_COLS) {
     cursor->row++;
     cursor->col = 0;
+  }
+  else
+  {
+    cursor->col++;
   }
 }
 

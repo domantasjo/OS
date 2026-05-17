@@ -3,7 +3,7 @@
 #define VGA_BUFFER 0xB8000
 #define MAX_COLS 80
 #define VGA_ROWS 24
-#define MAX_ROWS 1000
+#define MAX_ROWS 100
 
 extern volatile char *vga;
 typedef struct {

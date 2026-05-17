@@ -6,6 +6,7 @@
 #include "pic.h"
 #include "pit.h"
 #include <stdint.h>
+#include "../../process.h"
 
 static idt_entry_t idt[IDT_MAX_DESCRIPTORS];
 static idtr_t idtr;
@@ -35,7 +36,6 @@ void interrupt_handler(uint32_t vector, uint32_t err) {
   } else if (vector < 40) {
     switch (vector) {
     case 32:
-      ticks++;
       break;
     case 33:
       keyboard_irq();

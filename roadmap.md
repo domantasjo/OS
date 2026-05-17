@@ -272,7 +272,7 @@ Goal: Data structures to represent a process.
 
 ---
 
-## [ ] Step 17: Context Switching
+## [X] Step 17: Context Switching
 
 Implement saving and restoring CPU state:
 
